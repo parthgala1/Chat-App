@@ -1,7 +1,11 @@
 import express from "express";
-import authRoutes from "./routes/auth.routes.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+
+import authRoutes from "./routes/auth.routes.js";
+import messageRoutes from "./routes/message.routes.js";
+import userRoutes from "./routes/user.routes.js";
+
 const app = express();
 
 app.use((req, res, next) => {
@@ -27,5 +31,7 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/users", userRoutes);
 
 export { app };
