@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = "BgWThx8Te4DIhMO3bVW3DGdjK+21ubxmH+PjyzcL2fk=";
-const NODE_ENV = "development";
+const NODE_ENV = "production";
 // const generateAccessAndRefereshTokens = async (userId) => {
 //   try {
 //     const user = await User.findById(userId);
