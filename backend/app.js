@@ -1,12 +1,15 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { app, server } from "./socket/socket.js";
+import dotenv from "dotenv";
+import connectDB from "./db/index.js";
 
 import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import userRoutes from "./routes/user.routes.js";
 
-const app = express();
+dotenv.config();
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
@@ -34,4 +37,12 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
 
-export { app };
+connectDB()
+  .then(() => {
+    server.listen(process.env.PORT || 8000, () => {
+      console.log(`App is listening on PORT ${process.env.PORT || 8000}`);
+    });
+  })
+  .catch((error) => {
+    console.log("MongoDB connection failed", error);
+  });
