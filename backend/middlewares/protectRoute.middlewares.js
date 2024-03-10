@@ -10,7 +10,7 @@ const protectRoute = async (req, res, next) => {
     throw new ApiError(401, "Unauthorized - No Token Provided");
   }
 
-  const decoded = jwt.verify(token, JWT_SECRET);
+  const decoded = jwt.verify(token, JWT_SECRET || process.env.JWT_SECRET);
 
   if (!decoded) {
     throw new ApiError(401, "Unauthorized - Invalid Token");

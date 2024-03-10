@@ -1,9 +1,8 @@
-import { ApiError } from "../utils/ApiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
 import { Conversation } from "../models/conversation.models.js";
 import { Message } from "../models/message.models.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
-export const sendMessage = asyncHandler(async (req, res) => {
+export const sendMessage = async (req, res) => {
   try {
     const { message } = req.body;
     const { id: receiverId } = req.params;
@@ -29,35 +28,42 @@ export const sendMessage = asyncHandler(async (req, res) => {
       conversation.messages.push(newMessage._id);
     }
 
-    //SOCKET IO WILL BE HERE
-
-    // This is time taking
     // await conversation.save();
     // await newMessage.save();
-    //To optimize this use the code below, this will run in parallel
 
+    // this will run in parallel
     await Promise.all([conversation.save(), newMessage.save()]);
+
+    // SOCKET IO FUNCTIONALITY WILL GO HERE
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      // io.to(<socket_id>).emit() used to send events to specific client
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
 
     res.status(201).json(newMessage);
   } catch (error) {
-    throw new ApiError(500, "Internal server error");
+    console.log("Error in sendMessage controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
-});
+};
 
-export const getMessages = asyncHandler(async (req, res) => {
+export const getMessages = async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
     const senderId = req.user._id;
 
-    const conversationsWithUser = await Conversation.findOne({
+    const conversation = await Conversation.findOne({
       participants: { $all: [senderId, userToChatId] },
-    }).populate("messages"); //NOT a reference but actual messages
+    }).populate("messages"); // NOT REFERENCE BUT ACTUAL MESSAGES
 
-    if (!conversationsWithUser) res.status(200).json([]);
+    if (!conversation) return res.status(200).json([]);
 
-    const messages = conversationsWithUser.messages;
+    const messages = conversation.messages;
+
     res.status(200).json(messages);
   } catch (error) {
-    throw new ApiError(500, "Internal server error");
+    console.log("Error in getMessages controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
-});
+};
