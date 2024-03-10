@@ -4,10 +4,13 @@ import cookieParser from "cookie-parser";
 import { app, server } from "./socket/socket.js";
 import dotenv from "dotenv";
 import connectDB from "./db/index.js";
+import path from "path";
 
 import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import userRoutes from "./routes/user.routes.js";
+
+const __dirname = path.resolve();
 
 dotenv.config();
 
@@ -30,12 +33,16 @@ app.use(
 
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "/frontend/dist")));
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "/frontend/dist/index.html"));
+});
 
 connectDB()
   .then(() => {
